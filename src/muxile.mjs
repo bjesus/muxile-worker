@@ -222,7 +222,10 @@ export class ChatRoom {
       session.quit = true;
       this.sessions = this.sessions.filter((member) => member !== session);
       if (session.name) {
-        this.broadcast({ quit: session.name });
+        this.broadcast({
+          quit: session.name,
+        });
+        if (session.name === "tmux") storage.deleteAll();
       }
     };
     webSocket.addEventListener("close", closeOrErrorHandler);
