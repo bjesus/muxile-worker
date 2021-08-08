@@ -92,7 +92,6 @@ export class ChatRoom {
     // increasing timestamps even if multiple messages arrive simultaneously (see below). There's
     // no need to store this to disk since we assume if the object is destroyed and recreated, much
     // more than a millisecond will have gone by.
-    this.lastTimestamp = 0;
   }
 
   // The system will call fetch() whenever an HTTP request is sent to this Object. Such requests
@@ -185,14 +184,6 @@ export class ChatRoom {
           // into their session object.
           session.name = "" + (data.name || "anonymous");
 
-          // Don't let people use ridiculously long names. (This is also enforced on the client,
-          // so if they get here they are not using the intended client.)
-          if (session.name.length > 32) {
-            webSocket.send(JSON.stringify({ error: "Name too long." }));
-            webSocket.close(1009, "Name too long.");
-            return;
-          }
-
           // Deliver all the messages we queued up since the user connected.
           session.blockedMessages.forEach((queued) => {
             webSocket.send(queued);
@@ -202,8 +193,6 @@ export class ChatRoom {
           // Broadcast to all other connections that this user has joined.
           this.broadcast({ joined: session.name });
 
-          webSocket.send(JSON.stringify({ ready: true }));
-
           // Note that we've now received the user info message.
           receivedUserInfo = true;
 
@@ -212,19 +201,6 @@ export class ChatRoom {
 
         // Construct sanitized message for storage and broadcast.
         data = { name: session.name, message: "" + data.message };
-
-        // Block people from sending overly long messages. This is also enforced on the client,
-        // so to trigger this the user must be bypassing the client code.
-        // if (data.message.length > 256) {
-        //   webSocket.send(JSON.stringify({ error: "Message too long." }));
-        //   return;
-        // }
-
-        // Add timestamp. Here's where this.lastTimestamp comes in -- if we receive a bunch of
-        // messages at the same time (or if the clock somehow goes backwards????), we'll assign
-        // them sequential timestamps, so at least the ordering is maintained.
-        data.timestamp = Math.max(Date.now(), this.lastTimestamp + 1);
-        this.lastTimestamp = data.timestamp;
 
         // Broadcast the message to all other WebSockets.
         let dataStr = JSON.stringify(data);
