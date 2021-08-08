@@ -95,6 +95,7 @@
       let data = JSON.parse(event.data);
       if (data.name === "tmux" || data.name === "anonymous") {
         termContent.innerHTML = atob(data.message);
+        termContent.scrollTop = termContent.scrollHeight
       }
     });
 
