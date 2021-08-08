@@ -31,10 +31,7 @@ export default {
       let path = url.pathname.slice(1).split("/");
 
       if (!path[0]) {
-        // Serve our HTML at the root path.
-        return new Response(HTML, {
-          headers: { "Content-Type": "text/html;charset=UTF-8" },
-        });
+        return Response.redirect("https://github.com/bjesus/muxile", 307);
       }
 
       switch (path[0]) {
@@ -160,12 +157,11 @@ export class ChatRoom {
 
     // Load the last 100 messages from the chat history stored on disk, and send them to the
     // client.
-    // let storage = await this.storage.list({ reverse: true, limit: 100 });
-    // let backlog = [...storage.values()];
-    // backlog.reverse();
-    // backlog.forEach((value) => {
-    //   session.blockedMessages.push(value);
-    // });
+    let storage = await this.storage.list({ reverse: true, limit: 1 });
+    let backlog = [...storage.values()];
+    backlog.forEach((value) => {
+      session.blockedMessages.push(value);
+    });
 
     // Set event handlers to receive messages.
     let receivedUserInfo = false;
